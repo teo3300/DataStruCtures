@@ -28,6 +28,6 @@ $(BINARIES)/%.$(BINARIES_EXT): $(SOURCE)/%.$(SOURCE_EXT) $(INCLUDE)/%.$(INCLUDE_
 	$(CC) $(FLAGS) -I$(INCLUDE) -o $@ -c $<
 
 init:
-	mkdir $(SOURCE)
-	mkdir $(BINARIES)
-	mkdir $(INCLUDE)
+	- mkdir $(SOURCE)
+	- mkdir $(BINARIES)
+	- mkdir $(INCLUDE)
