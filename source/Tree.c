@@ -7,7 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
-Tree* treeInit(uint (*sorting_criteria)(treeNode, treeNode)) {
+uint treeSize(Tree* tree){
+    return tree->tree_size;
+}
+
+Tree* treeInit(int (*sorting_criteria)(treeNode, treeNode)) {
     Tree* tree = (Tree*)malloc(sizeof(Tree));
     tree->root = tree->nil = (treeNode*)malloc(sizeof(treeNode));
     tree->sorting_criteria = sorting_criteria;
@@ -67,6 +71,16 @@ void treeAppend(Tree* tree, void* data, uint data_size){
     treeInsert(tree, tmp);
 }
 
+treeNode* treeRecursiveFind(Tree* tree, treeNode* x, treeNode* y){
+    if(y == tree->nil) return NULL;
+    if (tree->sorting_criteria(*x, *y) < 0){
+        return treeRecursiveFind(tree, x, y->right);
+    } if (tree->sorting_criteria(*x,*y) > 0){
+        return treeRecursiveFind(tree, x, y->left);
+    }
+    return y;
+}
+
 void treeLeftRotate(Tree* tree, treeNode *x) {
     treeNode *y = x->right;
     x->right = y->left;
@@ -121,7 +135,7 @@ void treeInsert(Tree* tree, treeNode* z){
     treeNode* x = tree->root;
     while(x != treeNull){
         y = x;
-        if (tree->sorting_criteria(*z,*x)){
+        if (tree->sorting_criteria(*z,*x)>0){
             x = x->left;
         } else {
             x = x->right;
@@ -130,7 +144,7 @@ void treeInsert(Tree* tree, treeNode* z){
     z->parent = y;
     if(y == treeNull){
         tree->root = z;
-    } else if (tree->sorting_criteria(*z,*y)){
+    } else if (tree->sorting_criteria(*z,*y)>0){
         y->left = z;
     } else {
         y->right = z;
@@ -282,12 +296,20 @@ void treeRecursiveStructPrint(Tree* tree, treeNode* node, uint depth){
 }
 
 void treeRecursiveDestroy(Tree* tree, treeNode* node){
-    if (node->left != treeNull){
+    if (node->left != tree->nil){
         treeRecursiveDestroy(tree, node->left);
     }
-    if (node->right != treeNull){
+    if (node->right != tree->nil){
         treeRecursiveDestroy(tree, node->right);
     }
     tree->tree_size--;
     free(node);
+}
+
+void treeDestroy(Tree* tree){
+    if (tree->tree_size){
+        treeRecursiveDestroy(tree, tree->root);
+    }
+    free(tree->nil);
+    free(tree);
 }
