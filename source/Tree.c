@@ -7,18 +7,20 @@
 #include <stdio.h>
 #include <string.h>
 
-uint treeSize(Tree* tree){
+uint treeSize(Tree tree){
     return tree->tree_size;
 }
 
-Tree* treeInit(int (*sorting_criteria)(treeNode, treeNode)) {
-    Tree* tree = (Tree*)malloc(sizeof(Tree));
-    tree->root = tree->nil = (treeNode*)malloc(sizeof(treeNode));
+Tree treeInit(int (*sorting_criteria)(treeNode, treeNode)) {
+    Tree tree = (Tree)malloc(sizeof(TREE));
+    if (!tree) return NULL;
+    tree->root = tree->nil = (treeNode)malloc(sizeof(TreeNode));
+    if (!tree->root) return NULL;
     tree->sorting_criteria = sorting_criteria;
     tree->tree_size = 0;
-    *(tree->nil) = (treeNode){   .parent = NULL,
-                                .left = NULL,
-                                .right = NULL,
+    *(tree->nil) = (TreeNode){  .parent = tree->nil,
+                                .left = tree->nil,
+                                .right = tree->nil,
                                 .data = NULL,
                                 .data_size = 0,
                                 .color = BLACK};
@@ -26,25 +28,25 @@ Tree* treeInit(int (*sorting_criteria)(treeNode, treeNode)) {
 }
 
 
-treeNode* treeMinimum(Tree* tree, treeNode* x){
+treeNode treeMinimum(Tree tree, treeNode x){
     while (x->left != tree->nil){
         x = x->left;
     }
     return x;
 }
 
-treeNode* treeMaximum(Tree* tree, treeNode* x){
+treeNode treeMaximum(Tree tree, treeNode x){
     while (x->right != tree->nil){
         x = x->right;
     }
     return x;
 }
 
-treeNode* treePred(Tree* tree, treeNode* x){
+treeNode treePred(Tree tree, treeNode x){
     if (x->left != tree->nil){
         return treeMaximum(tree, x->left);
     }
-    treeNode* y = x->parent;
+    treeNode y = x->parent;
     while (y != tree->nil && x == y->left){
         x = y;
         y = y->parent;
@@ -52,11 +54,11 @@ treeNode* treePred(Tree* tree, treeNode* x){
     return y;
 }
 
-treeNode* treeSucc(Tree* tree, treeNode* x){
+treeNode treeSucc(Tree tree, treeNode x){
     if (x->right != tree->nil){
         return treeMinimum(tree, x->right);
     }
-    treeNode* y = x->parent;
+    treeNode y = x->parent;
     while (y != tree->nil && x == y->right){
         x = y;
         y = y->parent;
@@ -64,32 +66,35 @@ treeNode* treeSucc(Tree* tree, treeNode* x){
     return y;
 }
 
-void treeAppend(Tree* tree, void* data, uint data_size){
-    treeNode* tmp = (treeNode*)malloc(sizeof(treeNode));
-    tmp->data = data;
+void* treeAppend(Tree tree, void* data, uint data_size){
+    treeNode tmp = (treeNode)malloc(sizeof(TreeNode));
+    if (!tmp) return NULL;
+    tmp->data = (void*)malloc(data_size);
+    if (!tmp->data) return NULL;
     tmp->data_size = data_size;
-    treeInsert(tree, tmp);
+    memcpy(tmp->data, data, data_size);
+    return(treeInsert(tree, tmp));
 }
 
-treeNode* treeRecursiveFind(Tree* tree, treeNode* x, treeNode* y){
+treeNode treeRecursiveFind(Tree tree, treeNode x, treeNode y){
     if(y == tree->nil) return NULL;
-    if (tree->sorting_criteria(*x, *y) < 0){
+    if (tree->sorting_criteria(x, y) < 0){
         return treeRecursiveFind(tree, x, y->right);
-    } if (tree->sorting_criteria(*x,*y) > 0){
+    } if (tree->sorting_criteria(x,y) > 0){
         return treeRecursiveFind(tree, x, y->left);
     }
     return y;
 }
 
-void treeLeftRotate(Tree* tree, treeNode *x) {
-    treeNode *y = x->right;
+void treeLeftRotate(Tree tree, treeNode x) {
+    treeNode y = x->right;
     x->right = y->left;
 
-    if (y->left != treeNull) {
+    if (y->left != tree->nil) {
         y->left->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == treeNull) {
+    if (x->parent == tree->nil) {
         tree->root = y;
     } else if (x == x->parent->left) {
         x->parent->left = y;
@@ -100,15 +105,15 @@ void treeLeftRotate(Tree* tree, treeNode *x) {
     x->parent = y;
 }
 
-void treeRightRotate(Tree* tree, treeNode *x) {
-    treeNode *y = x->left;
+void treeRightRotate(Tree tree, treeNode x) {
+    treeNode y = x->left;
     x->left = y->right;
 
-    if (y->right != treeNull) {
+    if (y->right != tree->nil) {
         y->right->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == treeNull) {
+    if (x->parent == tree->nil) {
         tree->root = y;
     } else if (x == x->parent->right) {
         x->parent->right = y;
@@ -119,8 +124,8 @@ void treeRightRotate(Tree* tree, treeNode *x) {
     x->parent = y;
 }
 
-void treeTransplant(Tree* tree, treeNode *u, treeNode *v){
-    if (u->parent == treeNull){
+void treeTransplant(Tree tree, treeNode u, treeNode v){
+    if (u->parent == tree->nil){
         tree->root = v;
     } else if (u == u->parent->left){
         u->parent->left = v;
@@ -130,34 +135,34 @@ void treeTransplant(Tree* tree, treeNode *u, treeNode *v){
     v->parent = u->parent;
 }
 
-void treeInsert(Tree* tree, treeNode* z){
-    treeNode* y = treeNull;
-    treeNode* x = tree->root;
-    while(x != treeNull){
+void* treeInsert(Tree tree, treeNode z){
+    treeNode y = tree->nil;
+    treeNode x = tree->root;
+    while(x != tree->nil){
         y = x;
-        if (tree->sorting_criteria(*z,*x)>0){
+        if (tree->sorting_criteria(z,x)>0){
             x = x->left;
         } else {
             x = x->right;
         }
     }
     z->parent = y;
-    if(y == treeNull){
+    if(y == tree->nil){
         tree->root = z;
-    } else if (tree->sorting_criteria(*z,*y)>0){
+    } else if (tree->sorting_criteria(z,y)>0){
         y->left = z;
     } else {
         y->right = z;
     }
-    z->left = treeNull;
-    z->right = treeNull;
+    z->left = tree->nil;
+    z->right = tree->nil;
     z->color = RED;
     tree->tree_size++;
-    treeInsertFixup(tree, z);
+    return(treeInsertFixup(tree, z));
 }
 
-void treeInsertFixup(Tree* tree, treeNode* z){
-    treeNode* y;
+void* treeInsertFixup(Tree tree, treeNode z){
+    treeNode y;
     while (z->parent->color == RED){
         if (z->parent == z->parent->parent->left){
             y = z->parent->parent->right;
@@ -194,12 +199,14 @@ void treeInsertFixup(Tree* tree, treeNode* z){
         }
     }
     tree->root->color = BLACK;
+    return z;
 }
 
-void treeDeleteFixup(Tree* tree, treeNode* x){
+void treeDeleteFixup(Tree tree, treeNode x){
     while (x != tree->root && x->color == BLACK){
+        treeNode w;
         if (x == x->parent->left){
-            treeNode* w = x->parent->right;
+            w = x->parent->right;
             if (w->color == RED){
                 w->color = BLACK;
                 x->parent->color = RED;
@@ -223,7 +230,7 @@ void treeDeleteFixup(Tree* tree, treeNode* x){
                 x = tree->root;
             }
         } else {
-            treeNode* w = x->parent->left;
+            w = x->parent->left;
             if (w->color == RED){
                 w->color = BLACK;
                 x->parent->color = RED;
@@ -251,14 +258,14 @@ void treeDeleteFixup(Tree* tree, treeNode* x){
     x->color = BLACK;
 }
 
-void treeDelete(Tree* tree, treeNode* z){
-    treeNode*   y = z;
-    treeNode*   x;
+void treeDelete(Tree tree, treeNode z){
+    treeNode y = z;
+    treeNode x;
     color_type y_original_color = y->color;
-    if (z->left == treeNull){
+    if (z->left == tree->nil){
         x = z->right;
         treeTransplant(tree, z, z->right);
-    } else if (z->right == treeNull){
+    } else if (z->right == tree->nil){
         x = z->left;
         treeTransplant(tree, z, z->left);
     } else {
@@ -284,18 +291,18 @@ void treeDelete(Tree* tree, treeNode* z){
     free(z);
 }
 
-void treeRecursiveStructPrint(Tree* tree, treeNode* node, uint depth){
-    if (node->left != treeNull){
+void treeRecursiveStructPrint(Tree tree, treeNode node, uint depth){
+    if (node->left != tree->nil){
         treeRecursiveStructPrint(tree, node->left, depth+1);
     }
     for(uint i=0; i<depth; i++){putchar('-');}
     printf("%c[%3d]\n", node->color ? 'R' : 'B', node->data_size);
-    if (node->right != treeNull){
+    if (node->right != tree->nil){
         treeRecursiveStructPrint(tree, node->right, depth+1);
     }
 }
 
-void treeRecursiveDestroy(Tree* tree, treeNode* node){
+void treeRecursiveDestroy(Tree tree, treeNode node){
     if (node->left != tree->nil){
         treeRecursiveDestroy(tree, node->left);
     }
@@ -303,10 +310,11 @@ void treeRecursiveDestroy(Tree* tree, treeNode* node){
         treeRecursiveDestroy(tree, node->right);
     }
     tree->tree_size--;
+    if(node->data) free(node->data);
     free(node);
 }
 
-void treeDestroy(Tree* tree){
+void treeDestroy(Tree tree){
     if (tree->tree_size){
         treeRecursiveDestroy(tree, tree->root);
     }
