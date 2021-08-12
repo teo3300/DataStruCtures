@@ -21,11 +21,11 @@ Heap heapInit(uint dim, int(*sorting_criteria)(heapNode, heapNode)){
     return heap;
 }
 
-uint heapOOOInsert(Heap heap, void* data, uint size){
+uint heapOOOInsert(Heap heap, void* data, uint data_size){
     if(heap->content->size == heap->content->length) return 0;
-    heap->content[++heap->content->size] = (HeapNode){.data = (void*)malloc(size), .data_size = size};
+    heap->content[++heap->content->size] = (HeapNode){.data = (void*)malloc(data_size), .data_size = data_size};
     if(heap->content[heap->content->size].data == NULL) return 0;
-    memcpy(heap->content[heap->content->size].data, data, size);
+    memcpy(heap->content[heap->content->size].data, data, data_size);
     return 1;
 }
 
@@ -44,12 +44,12 @@ void heapify(Heap heap, uint i){
     }
 }
 
-void heapUpdate(Heap heap, uint i, uint size){
-    heap->content[i].data_size = size;
-    while(i > 1 && heap->sorting_criteria(heap->content+PARENT(i), heap->content+i)){
+void heapUpdate(Heap heap, uint i){
+    while(i > 1 && heap->sorting_criteria(heap->content+i, heap->content+PARENT(i)) > 0){
         SWAP(i, PARENT(i));
         i = PARENT(i);
     }
+
 }
 
 void heapBuild(Heap heap){
@@ -62,9 +62,9 @@ void heapRebuild(Heap heap, int (*sorting_criteria)(heapNode, heapNode)){
     heapBuild(heap);
 }
 
-uint heapInsert(Heap heap, void* data, uint size){
-    if(! heapOOOInsert(heap, data, size)) return 0;
-    heapUpdate(heap, heap->content->size, size);
+uint heapInsert(Heap heap, void* data, uint data_size){
+    if(! heapOOOInsert(heap, data, data_size)) return 0;
+    heapUpdate(heap, heap->content->size);
     return 1;
 }
 
@@ -84,6 +84,7 @@ void heapPrint(Heap heap){
     printf("Heap:\n");
     for(uint i=1; i<=heap->content->size; i++)
         printf("(%u) <%u, %p>\n", i, heap->content[i].data_size, heap->content[i].data);
+        //printf("%2d: %s\n", i, (char*)heap->content[i].data);
 }
 
 void heapPrintTrace(Heap heap){

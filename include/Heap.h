@@ -33,17 +33,17 @@ uint heapAvail(Heap heap);
 // Initialize heap specifying maximum size and sorting criteria.
 Heap heapInit(uint dim, int(*sorting_criteria)(heapNode, heapNode));
 // Insert elements out of order.
-uint heapOOOInsert(Heap heap, void* data, uint size);
+uint heapOOOInsert(Heap heap, void* data, uint data_size);
 
 void heapify(Heap heap, uint i);
-void heapUpdate(Heap heap, uint i, uint size);
+void heapUpdate(Heap heap, uint i);
 
 // Build heap from array
 void heapBuild(Heap heap);
 // Change sorting criteria and Build new heap with this new one
 void heapRebuild(Heap heap, int(*sorting_criteria)(heapNode, heapNode));
 // Insert elements in order
-uint heapInsert(Heap heap, void* data, uint size);
+uint heapInsert(Heap heap, void* data, uint data_size);
 
 // Extract heap head and heapify
 uint heapExtract(Heap heap, void* dump);
