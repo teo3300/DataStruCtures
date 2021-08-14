@@ -21,16 +21,6 @@ Tree treeInit(int (*sorting_criteria)(void*, void*), uint memAlloc, uint data_si
     return tree;
 }
 
-void treePrintProp(Tree tree){
-    printf("tree:\n\ttree:\t\t\t%p\n", tree);
-    printf("\ttree->nil:\t\t%p\n", tree->nil);
-    printf("\ttree->root:\t\t%p\n", tree->root);
-    printf("\ttree->sorting_criteria:\t%p\n", tree->sorting_criteria);
-    printf("\ttree->data_size:\t%u\n", tree->data_size);
-    printf("\ttree->libAlloc:\t\t%s\n", tree->libAlloc ? "true" : "false");
-    printf("\ttree->tree_size:\t%u\n", tree->tree_size);
-}
-
 treeNode treeMinimum(Tree tree, treeNode x){
     while (x->left != tree->nil){
         x = x->left;
@@ -127,7 +117,6 @@ void* treeDelete(Tree tree, treeNode z){
 }
 
 Tree treeRebuild(Tree tree, int(*sorting_criteria)(void*, void*)){
-
     TREE tmpTree;
     tmpTree.nil               = tree->nil;
     tmpTree.root              = tree->nil;
@@ -144,9 +133,9 @@ Tree treeRebuild(Tree tree, int(*sorting_criteria)(void*, void*)){
 
 treeNode treeRecursiveFirstFind(Tree tree, void *x, treeNode y){
     if (y != tree->nil){
-        if (tree->sorting_criteria(x, y->data) < 0){
+        if (tree->sorting_criteria(x, y->data) > 0){
             return treeRecursiveFirstFind(tree, x, y->right);
-        } if (tree->sorting_criteria(x, y->data) > 0){
+        } if (tree->sorting_criteria(x, y->data) < 0){
             return treeRecursiveFirstFind(tree, x, y->left);
         }
     }
@@ -207,7 +196,7 @@ treeNode treeInsert(Tree tree, treeNode z){
     treeNode x = tree->root;
     while(x != tree->nil){
         y = x;
-        if (tree->sorting_criteria(z->data, x->data)>0){
+        if (tree->sorting_criteria(z->data, x->data)<0){
             x = x->left;
         } else {
             x = x->right;
@@ -216,7 +205,7 @@ treeNode treeInsert(Tree tree, treeNode z){
     z->parent = y;
     if(y == tree->nil){
         tree->root = z;
-    } else if (tree->sorting_criteria(z->data, y->data)>0){
+    } else if (tree->sorting_criteria(z->data, y->data)<0){
         y->left = z;
     } else {
         y->right = z;

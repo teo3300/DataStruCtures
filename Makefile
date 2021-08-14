@@ -16,7 +16,7 @@ PACKAGES =
 ############################## SETTINGS ##############################
 
 
-FLAGS = $(shell pkg-config --cflags --libs $(PACKAGES) 2> /dev/null)
+FLAGS += $(shell pkg-config --cflags --libs $(PACKAGES) 2> /dev/null)
 
 main: main.$(SOURCE_EXT) $(shell ls $(BINARIES)/* 2> /dev/null) $(shell ls $(INCLUDE)/* 2> /dev/null)
 	$(CC) $(FLAGS) -I$(INCLUDE) -o $@ $< $(shell ls $(BINARIES)/* 2> /dev/null)
