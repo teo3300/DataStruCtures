@@ -1,34 +1,45 @@
 #ifndef TREE_H
 #define TREE_H
 
+#undef  LIBALLOC
+#undef  USRALLOC
+#define LIBALLOC 1
+#define USRALLOC 0
+
+#define INLINE static inline
+
 #define BLACK 0
 #define RED 1
 
-#define uint unsigned int
+#define uint  unsigned int
+#define ulint unsigned long int
 #define color_type uint
 
 typedef struct TREENODE{
     struct TREENODE *left;
-    struct TREENODE *right;
     struct TREENODE *parent;
-    color_type    color;
-    void*   data;
-    uint    data_size;
+    struct TREENODE *right;
+    void*            data;
+    color_type       color;
 } TreeNode;
 typedef TreeNode *treeNode;
 
 typedef struct {
-    treeNode root;
-    treeNode nil;
-    uint tree_size;
-    int (*sorting_criteria)(treeNode, treeNode);
+    treeNode    nil;
+    treeNode    root;
+    int       (*sorting_criteria)(void*, void*);
+    uint        data_size;
+    uint        libAlloc;
+    uint        tree_size;
 } TREE;
 typedef TREE *Tree;
 
-uint treeSize(Tree tree);
+INLINE uint treeSize(Tree tree){return tree->tree_size;}
 
 // Initialise tree specifying sorting criteria
-Tree treeInit(int(*sorting_criteria)(treeNode, treeNode));
+Tree treeInit(int(*sorting_criteria)(void*, void*), uint memAlloc, uint data_size /*only used with libAlloc*/);
+
+void treePrintProp(Tree tree);
 
 #define treeAbsMinimum(tree)    treeMinimum(tree, tree->root)
 treeNode treeMinimum(Tree tree, treeNode x);
@@ -36,20 +47,22 @@ treeNode treeMinimum(Tree tree, treeNode x);
 treeNode treeMaximum(Tree tree, treeNode x);
 treeNode treePred(Tree tree, treeNode x);
 treeNode treeSucc(Tree tree, treeNode x);
-void* treeAppend(Tree tree, void* data, uint data_size);
-void treeDelete(Tree tree, treeNode z);
+treeNode treeAppend(Tree tree, void* data_size);
+treeNode treeRemove(Tree tree, treeNode z);
+void* treeDelete(Tree tree, treeNode z);
+Tree treeRebuild(Tree tree, int(*sorting_criteria)(void*, void*));/*keep alloc type*/
 
-#define treeFind(tree, node)    treeRecursiveFind(tree, &node, tree->root)
-treeNode treeRecursiveFind(Tree tree, treeNode x, treeNode y);
+#define treeFirstFind(tree, data_ptr)    treeRecursiveFirstFind(tree, data_ptr, tree->root)
+treeNode treeRecursiveFirstFind(Tree tree, void *x, treeNode y);
 
 void treeLeftRotate(Tree tree, treeNode x);
 void treeRightRotate(Tree tree, treeNode x);
 void treeTransplant(Tree tree, treeNode u, treeNode v);
-void* treeInsert(Tree tree, treeNode z);
-void* treeInsertFixup(Tree tree, treeNode z);
+treeNode treeInsert(Tree tree, treeNode z);
+treeNode treeInsertFixup(Tree tree, treeNode z);
 void treeDeleteFixup(Tree tree, treeNode x);
 
-#define treeStructPrint(tree)   treeRecursiveStructPrint(tree, tree->root, 0);
+#define treeStructPrint(tree)   (tree->root != tree->nil) ? treeRecursiveStructPrint(tree, tree->root, 0) : 0
 void treeRecursiveStructPrint(Tree tree, treeNode node,  uint depth);
 
 void treeDestroy(Tree tree);

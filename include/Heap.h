@@ -1,39 +1,39 @@
 #ifndef HEAP_H
 #define HEAP_H
 
-//#define DEBUG
+#undef  LIBALLOC
+#undef  USRALLOC
+#define LIBALLOC 1
+#define USRALLOC 0
+
+#define INLINE static inline
 
 #define uint unsigned int
-typedef union HEAPNODE{
-    struct{
-        uint data_size;
-        void* data;
-    };
-    struct{
-        uint length;
-        uint size;
-    };
-}HeapNode;
-typedef HeapNode *heapNode;
+#define ulint unsigned long int
+
 typedef struct{
-    heapNode   content;
-    int        (*sorting_criteria)(heapNode, heapNode);
-}HEAP;
+    void      **data;
+    int       (*sorting_criteria)(void*, void*);
+    uint        data_size;
+    uint        length;
+    uint        libAlloc;
+    uint        size;
+} HEAP;
 typedef HEAP *Heap;
 
 #define PARENT(i)       ((i)>>1)
 #define LEFT(i)         ((i)<<1)
 #define RIGHT(i)        (((i)<<1)+1)
-#define heapTop(heap)   (heap->content[1])
-#define SWAP(a,b)       {HeapNode C = heap->content[a]; heap->content[a] = heap->content[b]; heap->content[b] = C;}
+#define heapTop(heap)   (heap->data[1])
+#define SWAP(a,b)       {void* C = heap->data[a]; heap->data[a] = heap->data[b]; heap->data[b] = C;}
 
-uint heapSize(Heap heap);
-uint heapAvail(Heap heap);
+INLINE uint heapSize(Heap heap){return heap->size;}
+INLINE uint heapAvail(Heap heap){return heap->length - heap->size;}
 
 // Initialize heap specifying maximum size and sorting criteria.
-Heap heapInit(uint dim, int(*sorting_criteria)(heapNode, heapNode));
+Heap heapInit(uint dim, int(*sorting_criteria)(void*, void*), uint memAlloc, uint data_size /*only used with libAlloc*/);
 // Insert elements out of order.
-uint heapOOOInsert(Heap heap, void* data, uint data_size);
+void* heapOOOInsert(Heap heap, void* data);
 
 void heapify(Heap heap, uint i);
 void heapUpdate(Heap heap, uint i);
@@ -41,17 +41,17 @@ void heapUpdate(Heap heap, uint i);
 // Build heap from array
 void heapBuild(Heap heap);
 // Change sorting criteria and Build new heap with this new one
-void heapRebuild(Heap heap, int(*sorting_criteria)(heapNode, heapNode));
+void heapRebuild(Heap heap, int(*sorting_criteria)(void*, void*));/*keep alloc type*/
 // Insert elements in order
-uint heapInsert(Heap heap, void* data, uint data_size);
+void* heapInsert(Heap heap, void* data);
 
 // Extract heap head and heapify
-uint heapExtract(Heap heap, void* dump);
+void* heapExtract(Heap heap, void* dump);
 // Print heap elements: "(index) <size, addr>"
 void heapPrint(Heap heap);
 // Print heap trace: "(index) [0, nil]"
 void heapPrintTrace(Heap heap);
 // Destroy heap and all its content
-Heap heapDestroy(Heap heap);
+void heapDestroy(Heap heap);
 
 #endif

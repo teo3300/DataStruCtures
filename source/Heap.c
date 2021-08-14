@@ -4,39 +4,36 @@
 #include <string.h>
 #include <malloc.h>
 
-uint heapSize(Heap heap){
-    return heap->content->size;
-}
-uint heapAvail(Heap heap){
-    return heap->content->length - heap->content->size;
-}
-
-Heap heapInit(uint dim, int(*sorting_criteria)(heapNode, heapNode)){
-    Heap heap = (Heap)malloc(sizeof(HEAP));
-    if(heap == NULL) return 0;
-    *heap = (HEAP){.content = (heapNode)malloc((dim+1)*sizeof(HeapNode)), .sorting_criteria = sorting_criteria};
-    if(heap->content == NULL) return 0;
-    heap->content->length = dim;
-    heap->content->size = 0;
+Heap heapInit(uint dim, int(*sorting_criteria)(void*, void*), uint memAlloc, uint data_size){
+    Heap heap = (Heap)malloc(sizeof(HEAP));                             if(heap == NULL) return NULL;
+    heap->data              = (void**)malloc((dim+1)*sizeof(void*));    if(heap->data == NULL) return NULL;
+    heap->sorting_criteria  = sorting_criteria;
+    heap->data_size         = data_size;
+    heap->size              = 0;
+    heap->length            = dim;
+    heap->libAlloc          = memAlloc;
     return heap;
 }
 
-uint heapOOOInsert(Heap heap, void* data, uint data_size){
-    if(heap->content->size == heap->content->length) return 0;
-    heap->content[++heap->content->size] = (HeapNode){.data = (void*)malloc(data_size), .data_size = data_size};
-    if(heap->content[heap->content->size].data == NULL) return 0;
-    memcpy(heap->content[heap->content->size].data, data, data_size);
-    return 1;
+void* heapOOOInsert(Heap heap, void* data){
+    if(heap->size == heap->length) return NULL;
+    if (heap->libAlloc) {
+        heap->data[++heap->size] = (void*)malloc(heap->data_size);  if(heap->data[heap->size] == NULL) return NULL;
+        memcpy(heap->data[heap->size], data, heap->data_size);
+    } else {
+        heap->data[++heap->size] = data;
+    }
+    return heap->data[heap->size];
 }
 
 void heapify(Heap heap, uint i){
     uint l = LEFT(i);
     uint r = RIGHT(i);
     uint top;
-    if(l <= heap->content->size && heap->sorting_criteria(heap->content+l, heap->content+i) > 0)
+    if(l <= heap->size && heap->sorting_criteria(heap->data+l, heap->data+i) > 0)
         top = l;
     else top = i;
-    if(r <= heap->content->size && heap->sorting_criteria(heap->content+r, heap->content+top) > 0)
+    if(r <= heap->size && heap->sorting_criteria(heap->data+r, heap->data+top) > 0)
         top = r;
     if(top != i){
         SWAP(i, top);
@@ -45,7 +42,7 @@ void heapify(Heap heap, uint i){
 }
 
 void heapUpdate(Heap heap, uint i){
-    while(i > 1 && heap->sorting_criteria(heap->content+i, heap->content+PARENT(i)) > 0){
+    while(i > 1 && heap->sorting_criteria(heap->data+i, heap->data+PARENT(i)) > 0){
         SWAP(i, PARENT(i));
         i = PARENT(i);
     }
@@ -53,53 +50,57 @@ void heapUpdate(Heap heap, uint i){
 }
 
 void heapBuild(Heap heap){
-    for(uint i=(heap->content->size)>>1; i>0; i--)
+    for(uint i=(heap->size)>>1; i>0; i--)
         heapify(heap, i);
 }
 
-void heapRebuild(Heap heap, int (*sorting_criteria)(heapNode, heapNode)){
+void heapRebuild(Heap heap, int (*sorting_criteria)(void*, void*)){
     heap->sorting_criteria = sorting_criteria;
     heapBuild(heap);
 }
 
-uint heapInsert(Heap heap, void* data, uint data_size){
-    if(! heapOOOInsert(heap, data, data_size)) return 0;
-    heapUpdate(heap, heap->content->size);
-    return 1;
+void* heapInsert(Heap heap, void* data){
+    void* ret = heapOOOInsert(heap, data);
+    if(! ret) return 0;
+    heapUpdate(heap, heap->size);
+    return ret;
 }
 
-uint heapExtract(Heap heap, void* dump){
-    if (! heap->content->size) return 0;
-    uint ret_size = heapTop(heap).data_size;
-    if (! ret_size) return 0;
-    memcpy(dump,  heapTop(heap).data, heapTop(heap).data_size);
-    free(heapTop(heap).data);
-    heapTop(heap) = heap->content[heap->content->size];
-    heap->content->size--;
+void* heapExtract(Heap heap, void* dump){
+    void* ret;
+    if (! heap->size) return NULL;
+    if (heap->libAlloc) {
+        memcpy(dump, heapTop(heap), heap->data_size);
+        free(heapTop(heap));
+        ret = dump;
+    } else {
+        ret = heapTop(heap);
+    }
+    heapTop(heap) = heap->data[heap->size];
+    heap->size--;
     heapify(heap, 1);
-    return ret_size;
+    return ret;
 }
 
 void heapPrint(Heap heap){
     printf("Heap:\n");
-    for(uint i=1; i<=heap->content->size; i++)
-        printf("(%u) <%u, %p>\n", i, heap->content[i].data_size, heap->content[i].data);
+    for(uint i=1; i<=heap->size; i++)
+        printf("(%u) <%p>\n", i, heap->data[i]);
         //printf("%2d: %s\n", i, (char*)heap->content[i].data);
 }
 
 void heapPrintTrace(Heap heap){
     printf("Trace:\n");
-    for(uint i=heap->content->size+1; i<=heap->content->length; i++)
-        printf("(%u) [%u, %p]\n", i, heap->content[i].data_size, heap->content[i].data);
+    for(uint i=heap->size+1; i<=heap->length; i++)
+        printf("(%u) [%p]\n", i, heap->data[i]);
 }
 
-Heap heapDestroy(Heap heap){
-    if (!heap) return 0;
-    for(uint i=1; i<=heap->content->size; i++)
-        if(heap->content[i].data)
-            free(heap->content[i].data);
-    free(heap->content);
-    heap->content = NULL;
-    heap->sorting_criteria = NULL;
-    return heap;
+void heapDestroy(Heap heap){
+    if (heap->libAlloc) {
+        for(uint i=1; i<=heap->size; i++)
+            if(heap->data[i])
+                free(heap->data[i]);
+    }
+    free(heap->data);
+    free(heap);
 }

@@ -5,8 +5,11 @@
     #define PRINTSTR(msg)           fprintf(stdout, "%3d (%10s): \"%s\" -> \"%s\"\n",  __LINE__, __func__, #msg, msg)
 
     #define PRINTVAL(file, labl)    fprintf(file, "%3d (%10s): \"%s\" -> %d\n", __LINE__, __func__, #labl, labl)
+    #define PRINTPTR(file, labl)    fprintf(file, "%3d (%10s): \"%s\" -> %p\n", __LINE__, __func__, #labl, labl)
     #define DEBUG(labl)             PRINTVAL(stdout, labl)
+    #define DEPTR(labl)             PRINTPTR(stdout, labl)
     #define ERROR(labl)             PRINTVAL(stderr, labl)
+    #define ERPTR(labl)             PRINTPTR(stderr, labl)
     #define LOG(msg)                PRINT(stdout, #msg)
     #define ERR(msg)                PRINT(stderr, #msg)
 #endif
@@ -16,7 +19,9 @@
     
     #define PRINTVAL(file, labl)
     #define DEBUG(labl)
+    #define DEPTR(labl)
     #define ERROR(labl)
+    #define ERPTR(labl)
     #define LOG(msg)
     #define ERR(msg)
 #endif
