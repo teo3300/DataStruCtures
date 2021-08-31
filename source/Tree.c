@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
+//#define PRINTDEPTH
+//#define PRINTCOLOR
+
 Tree treeInit(int (*sorting_criteria)(void*, void*), uint memAlloc, uint data_size) {
     Tree tree = (Tree)malloc(sizeof(TREE));                         if (!tree) return NULL;
     tree->nil               = (treeNode)malloc(sizeof(TreeNode));   if (!tree->nil) return NULL;
@@ -12,6 +15,7 @@ Tree treeInit(int (*sorting_criteria)(void*, void*), uint memAlloc, uint data_si
     tree->data_size         = data_size;
     tree->libAlloc          = memAlloc;
     tree->tree_size         = 0;
+    tree->print             = defaultTreePrint;
 
     *(tree->nil) = (TreeNode){  .left = tree->nil,
                                 .parent = tree->nil,
@@ -19,6 +23,10 @@ Tree treeInit(int (*sorting_criteria)(void*, void*), uint memAlloc, uint data_si
                                 .data = NULL,
                                 .color = BLACK};
     return tree;
+}
+
+void treeSetPrint (Tree tree, void(*print)(void*)) {
+    tree->print = print;
 }
 
 treeNode treeMinimum(Tree tree, treeNode x){
@@ -318,11 +326,20 @@ void treeRecursiveStructPrint(Tree tree, treeNode node, uint depth){
     if (node->left != tree->nil){
         treeRecursiveStructPrint(tree, node->left, depth+1);
     }
-    for(uint i=0; i<depth; i++){putchar('-');}
-    printf("%c<%p>\n", node->color ? 'R' : 'B', node->data);
+    #ifdef PRINTDEPTH
+        for(uint i=0; i<depth; i++){putchar('-');}
+    #endif
+    #ifdef PRINTCOLOR
+        putchar(node->color ? 'R' : 'B'); putchar(':');
+    #endif
+    tree->print(node->data); putchar('\n');
     if (node->right != tree->nil){
         treeRecursiveStructPrint(tree, node->right, depth+1);
     }
+}
+
+void defaultTreePrint (void* data) {
+    printf("<%p>", data);
 }
 
 void treeRecursiveDestroy(Tree tree, treeNode node){

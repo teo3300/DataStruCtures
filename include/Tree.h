@@ -31,6 +31,7 @@ typedef struct {
     uint        data_size;
     uint        libAlloc;
     uint        tree_size;
+    void      (*print)(void*);
 } TREE;
 typedef TREE *Tree;
 
@@ -38,6 +39,7 @@ INLINE uint treeSize(Tree tree){return tree->tree_size;}
 
 // Initialise tree specifying sorting criteria
 Tree treeInit(int(*sorting_criteria)(void*, void*), uint memAlloc, uint data_size /*only used with libAlloc*/);
+void treeSetPrint(Tree tree, void(*print)(void*));
 
 void treePrintProp(Tree tree);
 
@@ -62,8 +64,9 @@ treeNode treeInsert(Tree tree, treeNode z);
 treeNode treeInsertFixup(Tree tree, treeNode z);
 void treeDeleteFixup(Tree tree, treeNode x);
 
-#define treeStructPrint(tree)   (tree->root != tree->nil) ? treeRecursiveStructPrint(tree, tree->root, 0) : 0
+#define treeStructPrint(tree)   if (tree->root != tree->nil) { treeRecursiveStructPrint(tree, tree->root, 0); }
 void treeRecursiveStructPrint(Tree tree, treeNode node,  uint depth);
+void defaultTreePrint(void* data);
 
 void treeDestroy(Tree tree);
 void treeRecursiveDestroy(Tree tree, treeNode node);
