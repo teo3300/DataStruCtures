@@ -1,13 +1,13 @@
-CC = gcc
+CC = g++
 
 SOURCE = source
-SOURCE_EXT = c
+SOURCE_EXT = cpp
 
 BINARIES = bin
 BINARIES_EXT = o
 
 INCLUDE = include
-INCLUDE_EXT = h
+INCLUDE_EXT = hpp
 
 FLAGS = -Wall -Werror -Wpedantic -O2
 PACKAGES = 
