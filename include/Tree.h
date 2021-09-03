@@ -49,7 +49,7 @@ treeNode treeMinimum(Tree tree, treeNode x);
 treeNode treeMaximum(Tree tree, treeNode x);
 treeNode treePred(Tree tree, treeNode x);
 treeNode treeSucc(Tree tree, treeNode x);
-treeNode treeAppend(Tree tree, void* data_size);
+treeNode treeAppend(Tree tree, void* data);
 treeNode treeRemove(Tree tree, treeNode z);
 void* treeDelete(Tree tree, treeNode z);
 Tree treeRebuild(Tree tree, int(*sorting_criteria)(void*, void*));/*keep alloc type*/

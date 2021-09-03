@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
-//#define PRINTDEPTH
-//#define PRINTCOLOR
+#define PRINTDEPTH
+#define PRINTCOLOR
 
 Tree treeInit(int (*sorting_criteria)(void*, void*), uint memAlloc, uint data_size) {
     Tree tree = (Tree)malloc(sizeof(TREE));                         if (!tree) return NULL;
